@@ -181,6 +181,23 @@
     
     if (_htmlReviewContent) {
         [body appendString:_htmlReviewContent];
+
+        // *************************************************************************************** //
+        // LGS CUSTOMIZATION - to allow signature to be appended to PDF document generated from custom HTML
+        // *************************************************************************************** //
+
+        // page break
+        //[body appendFormat:@"<h4 class=\"pagebreak\" >%@</h4>", _signaturePageTitle?:@""];
+        [body appendFormat:@"<p>%@</p>", _signaturePageContent?:@""];
+
+        for (ORKConsentSignature *signature in self.signatures) {
+            [body appendFormat:@"%@", [_signatureFormatter HTMLForSignature:signature]];
+        }
+
+        // *************************************************************************************** //
+        // END LGS CUSTOMIZATION
+        // *************************************************************************************** //
+
     } else {
         
         // title

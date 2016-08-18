@@ -148,11 +148,28 @@
             
             if (nil == matchedChoice) {
                 NSAssert([answerValue isKindOfClass:[NSNumber class]], @"");
-                if (_isValuePicker) {
-                    matchedChoice = _choices[((NSNumber *)answerValue).unsignedIntegerValue + 1];
-                } else {
-                    matchedChoice = _choices[((NSNumber *)answerValue).unsignedIntegerValue];
+                
+                // *************************************************************************************** //
+                // LGS CUSTOMIZATION - to avoid crash when selected item is not present in the question
+                //                     options
+                // *************************************************************************************** //
+
+                //if (_isValuePicker) {
+                //    matchedChoice = _choices[((NSNumber *)answerValue).unsignedIntegerValue + 1];
+                //} else {
+                //    matchedChoice = _choices[((NSNumber *)answerValue).unsignedIntegerValue];
+                //}
+
+                if ([answerValue isKindOfClass:[NSNumber class]]) {
+                    if (_isValuePicker) {
+                        matchedChoice = _choices[[(NSNumber *)answerValue unsignedIntegerValue]+1];
+                    } else {
+                        matchedChoice = _choices[[(NSNumber *)answerValue unsignedIntegerValue]];
+                    }
                 }
+                // *************************************************************************************** //
+                // END LGS CUSTOMIZATION
+                // *************************************************************************************** //
             }
             
             if (matchedChoice) {

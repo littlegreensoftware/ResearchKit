@@ -334,7 +334,16 @@ CGFloat ORKWidthForSignatureView(UIWindow *window) {
     window = ORKDefaultWindowIfWindowIsNil(window); // need a proper window to use bounds
     const CGSize windowSize = window.bounds.size;
     const CGFloat windowPortraitWidth = MIN(windowSize.width, windowSize.height);
-    const CGFloat signatureViewWidth = windowPortraitWidth - (2 * ORKStandardHorizontalMarginForView(window) + 2 * ORKStandardLeftMarginForTableViewCell(window));
+
+    // *************************************************************************************** //
+    // LGS CUSTOMIZATION - to make signature space wider
+    // *************************************************************************************** //
+    //const CGFloat signatureViewWidth = windowPortraitWidth - ( 2*ORKStandardHorizontalMarginForView(window) + 2*ORKStandardLeftMarginForTableViewCell(window) );
+    const CGFloat signatureViewWidth = windowPortraitWidth - 10.0;
+    // *************************************************************************************** //
+    // END LGS CUSTOMIZATION
+    // *************************************************************************************** //
+    
     return signatureViewWidth;
 }
 
