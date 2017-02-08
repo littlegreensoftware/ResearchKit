@@ -56,6 +56,7 @@ DefineStringKey(VerificationTaskIdentifier);
 
 DefineStringKey(DatePickingTaskIdentifier);
 DefineStringKey(ImageCaptureTaskIdentifier);
+DefineStringKey(VideoCaptureTaskIdentifier);
 DefineStringKey(ImageChoicesTaskIdentifier);
 DefineStringKey(InstantiateCustomVCTaskIdentifier);
 DefineStringKey(LocationTaskIdentifier);
@@ -67,6 +68,7 @@ DefineStringKey(SelectionSurveyTaskIdentifier);
 
 DefineStringKey(ActiveStepTaskIdentifier);
 DefineStringKey(AudioTaskIdentifier);
+DefineStringKey(AuxillaryImageTaskIdentifier);
 DefineStringKey(FitnessTaskIdentifier);
 DefineStringKey(GaitTaskIdentifier);
 DefineStringKey(HolePegTestTaskIdentifier);
@@ -77,6 +79,8 @@ DefineStringKey(TwoFingerTapTaskIdentifier);
 DefineStringKey(TimedWalkTaskIdentifier);
 DefineStringKey(ToneAudiometryTaskIdentifier);
 DefineStringKey(TowerOfHanoiTaskIdentifier);
+DefineStringKey(TremorTaskIdentifier);
+DefineStringKey(TremorRightHandTaskIdentifier);
 DefineStringKey(WalkBackAndForthTaskIdentifier);
 
 DefineStringKey(CreatePasscodeTaskIdentifier);
@@ -339,6 +343,7 @@ static const CGFloat HeaderSideLayoutMargin = 16.0;
                        @[ // Question Steps
                            @"Date Pickers",
                            @"Image Capture",
+                           @"Video Capture",
                            @"Image Choices",
                            @"Location",
                            @"Scale",
@@ -360,7 +365,9 @@ static const CGFloat HeaderSideLayoutMargin = 16.0;
                            @"Tone Audiometry Task",
                            @"Tower Of Hanoi Task",
                            @"Two Finger Tapping Task",
-                           @"Walk And Turn Task"
+                           @"Walk And Turn Task",
+                           @"Hand Tremor Task",
+                           @"Right Hand Tremor Task",
                            ],
                        @[ // Passcode
                            @"Authenticate Passcode",
@@ -388,6 +395,7 @@ static const CGFloat HeaderSideLayoutMargin = 16.0;
                            @"Instantiate Custom VC",
                            @"Table Step",
                            @"Signature Step",
+                           @"Auxillary Image",
                            ],
                        ];
 }
@@ -531,6 +539,8 @@ static const CGFloat HeaderSideLayoutMargin = 16.0;
         return [self makeImageChoicesTask];
     } else if ([identifier isEqualToString:ImageCaptureTaskIdentifier]) {
         return [self makeImageCaptureTask];
+    } else if ([identifier isEqualToString:VideoCaptureTaskIdentifier]) {
+        return [self makeVideoCaptureTask];
     } else if ([identifier isEqualToString:TwoFingerTapTaskIdentifier]) {
         return [ORKOrderedTask twoFingerTappingIntervalTaskWithIdentifier:TwoFingerTapTaskIdentifier
                                                    intendedUseDescription:nil
@@ -608,9 +618,27 @@ static const CGFloat HeaderSideLayoutMargin = 16.0;
                                                           options:ORKPredefinedTaskOptionNone];
     } else if ([identifier isEqualToString:TableStepTaskIdentifier]) {
         return [self makeTableStepTask];
-    }
-    else if ([identifier isEqualToString:SignatureStepTaskIdentifier]) {
+    } else if ([identifier isEqualToString:SignatureStepTaskIdentifier]) {
         return [self makeSignatureStepTask];
+    } else if ([identifier isEqualToString:TremorTaskIdentifier]) {
+        return [ORKOrderedTask tremorTestTaskWithIdentifier:TremorTaskIdentifier
+                                     intendedUseDescription:nil
+                                         activeStepDuration:10
+                                          activeTaskOptions:
+                ORKTremorActiveTaskOptionExcludeHandAtShoulderHeight |
+                ORKTremorActiveTaskOptionExcludeHandAtShoulderHeightElbowBent |
+                ORKTremorActiveTaskOptionExcludeHandToNose
+                                                handOptions:ORKPredefinedTaskHandOptionBoth
+                                                    options:ORKPredefinedTaskOptionNone];
+    } else if ([identifier isEqualToString:TremorRightHandTaskIdentifier]) {
+        return [ORKOrderedTask tremorTestTaskWithIdentifier:TremorRightHandTaskIdentifier
+                                     intendedUseDescription:nil
+                                         activeStepDuration:10
+                                          activeTaskOptions:0
+                                                handOptions:ORKPredefinedTaskHandOptionRight
+                                                    options:ORKPredefinedTaskOptionNone];
+    } else if ([identifier isEqualToString:AuxillaryImageTaskIdentifier]) {
+        return [self makeAuxillaryImageTask];
     }
 
     return nil;
@@ -2325,6 +2353,14 @@ static const CGFloat HeaderSideLayoutMargin = 16.0;
     [self beginTaskWithIdentifier:WalkBackAndForthTaskIdentifier];
 }
 
+- (void)handTremorTaskButtonTapped:(id)sender {
+    [self beginTaskWithIdentifier:TremorTaskIdentifier];
+}
+
+- (void)rightHandTremorTaskButtonTapped:(id)sender {
+    [self beginTaskWithIdentifier:TremorRightHandTaskIdentifier];
+}
+
 #pragma mark - Dynamic task
 
 /*
@@ -2910,6 +2946,91 @@ static const CGFloat HeaderSideLayoutMargin = 16.0;
 - (void)imageCaptureButtonTapped:(id)sender {
     [self beginTaskWithIdentifier:ImageCaptureTaskIdentifier];
 }
+
+#pragma mark - Video Capture
+- (id<ORKTask>)makeVideoCaptureTask {
+    NSMutableArray *steps = [NSMutableArray new];
+    
+    /*
+     If implementing an video capture task like this one, remember that people will
+     take your instructions literally. So, be cautious. Make sure your template image
+     is high contrast and very visible against a variety of backgrounds.
+     */
+    {
+        ORKInstructionStep *step = [[ORKInstructionStep alloc] initWithIdentifier:@"begin"];
+        step.title = @"Hands";
+        step.image = [[UIImage imageNamed:@"hands_solid"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        step.detailText = @"In this step we will capture 5 second videos of both of your hands";
+        [steps addObject:step];
+    }
+    
+    {
+        ORKInstructionStep *step = [[ORKInstructionStep alloc] initWithIdentifier:@"right1"];
+        step.title = @"Right Hand";
+        step.image = [[UIImage imageNamed:@"right_hand_solid"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        step.detailText = @"Let's start by capturing a video of your right hand";
+        [steps addObject:step];
+    }
+    
+    {
+        ORKInstructionStep *step = [[ORKInstructionStep alloc] initWithIdentifier:@"right2"];
+        step.title = @"Right Hand";
+        step.image = [[UIImage imageNamed:@"right_hand_outline"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        step.detailText = @"Align your right hand with the on-screen outline and record the video.  Be sure to place your hand over a contrasting background.  You can re-capture the video as many times as you need.";
+        [steps addObject:step];
+    }
+    
+    {
+        ORKVideoCaptureStep *step = [[ORKVideoCaptureStep alloc] initWithIdentifier:@"right3"];
+        step.templateImage = [UIImage imageNamed:@"right_hand_outline_big"];
+        step.templateImageInsets = UIEdgeInsetsMake(0.05, 0.05, 0.05, 0.05);
+        step.duration = @5.0;
+        step.accessibilityInstructions = @"Extend your right hand, palm side down, one foot in front of your device. Tap the Start Recording button, or two-finger double tap the preview to capture the video";
+        step.accessibilityHint = @"Records the video visible in the preview";
+        [steps addObject:step];
+    }
+    
+    {
+        ORKInstructionStep *step = [[ORKInstructionStep alloc] initWithIdentifier:@"left1"];
+        step.title = @"Left Hand";
+        step.image = [[UIImage imageNamed:@"left_hand_solid"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        step.detailText = @"Now let's capture a video of your left hand";
+        [steps addObject:step];
+    }
+    
+    {
+        ORKInstructionStep *step = [[ORKInstructionStep alloc] initWithIdentifier:@"left2"];
+        step.title = @"Left Hand";
+        step.image = [[UIImage imageNamed:@"left_hand_outline"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+        step.detailText = @"Align your left hand with the on-screen outline and record the video.  Be sure to place your hand over a contrasting background.  You can re-capture the video as many times as you need.";
+        [steps addObject:step];
+    }
+    
+    {
+        ORKVideoCaptureStep *step = [[ORKVideoCaptureStep alloc] initWithIdentifier:@"left3"];
+        step.templateImage = [UIImage imageNamed:@"left_hand_outline_big"];
+        step.templateImageInsets = UIEdgeInsetsMake(0.05, 0.05, 0.05, 0.05);
+        step.duration = @5.0;
+        step.accessibilityInstructions = @"Extend your left hand, palm side down, one foot in front of your device. Tap the Start Recording button, or two-finger double tap the preview to capture the video";
+        step.accessibilityHint = @"Records the video visible in the preview";
+        [steps addObject:step];
+    }
+    
+    {
+        ORKInstructionStep *step = [[ORKInstructionStep alloc] initWithIdentifier:@"end"];
+        step.title = @"Complete";
+        step.detailText = @"Hand video capture complete";
+        [steps addObject:step];
+    }
+    
+    ORKOrderedTask *task = [[ORKOrderedTask alloc] initWithIdentifier:VideoCaptureTaskIdentifier steps:steps];
+    return task;
+}
+
+- (void)videoCaptureButtonTapped:(id)sender {
+    [self beginTaskWithIdentifier:VideoCaptureTaskIdentifier];
+}
+
 
 - (void)navigableOrderedTaskButtonTapped:(id)sender {
     [self beginTaskWithIdentifier:NavigableOrderedTaskIdentifier];
@@ -3647,8 +3768,7 @@ stepViewControllerWillAppear:(ORKStepViewController *)stepViewController {
     
     NSLog(@"[ORKTest] task results: %@", taskViewController.result);
     
-    if (_currentDocument)
-    {
+    if (_currentDocument) {
         /*
          This demonstrates how to take a signature result, apply it to a document,
          and then generate a PDF From the document that includes the signature.
@@ -3687,6 +3807,23 @@ stepViewControllerWillAppear:(ORKStepViewController *)stepViewController {
             }
         }
     }];
+}
+
+/**
+  When a task has completed it calls this method to post the result of the task to the delegate.
+*/
+- (void)taskViewController:(ORKTaskViewController *)taskViewController didChangeResult:(ORKTaskResult *)result {
+    /*
+     Upon creation of a Passcode by a user, the results of their creation
+     are returned by getting it from ORKPasscodeResult in this delegate call.
+     This is triggered upon completion/failure/or cancel
+     */
+    ORKStepResult *stepResult = (ORKStepResult *)[[result results] firstObject];
+    if ([[[stepResult results] firstObject] isKindOfClass:[ORKPasscodeResult class]]) {
+        ORKPasscodeResult *passcodeResult = (ORKPasscodeResult *)[[stepResult results] firstObject];
+        NSLog(@"passcode saved: %d , Touch ID Enabled: %d", passcodeResult.passcodeSaved, passcodeResult.touchIdEnabled);
+
+    }
 }
 
 - (void)taskViewController:(ORKTaskViewController *)taskViewController stepViewControllerWillDisappear:(ORKStepViewController *)stepViewController navigationDirection:(ORKStepViewControllerNavigationDirection)direction {
@@ -4004,6 +4141,24 @@ stepViewControllerWillAppear:(ORKStepViewController *)stepViewController {
     [steps addObject:stepLast];
     
     return [[ORKOrderedTask alloc] initWithIdentifier:SignatureStepTaskIdentifier steps:steps];
+}
+
+#pragma mark - Auxillary Image
+
+- (IBAction)auxillaryImageButtonTapped:(id)sender {
+    [self beginTaskWithIdentifier:AuxillaryImageTaskIdentifier];
+}
+
+- (ORKOrderedTask *)makeAuxillaryImageTask {
+
+    ORKInstructionStep *step = [[ORKInstructionStep alloc] initWithIdentifier:AuxillaryImageTaskIdentifier];
+    step.title = @"Title";
+    step.text = @"This is description text.";
+    step.detailText = @"This is detail text.";
+    step.image = [UIImage imageNamed:@"tremortest3a" inBundle:[NSBundle bundleForClass:[ORKOrderedTask class]] compatibleWithTraitCollection:nil];
+    step.auxiliaryImage = [UIImage imageNamed:@"tremortest3b" inBundle:[NSBundle bundleForClass:[ORKOrderedTask class]] compatibleWithTraitCollection:nil];
+    
+    return [[ORKOrderedTask alloc] initWithIdentifier:SignatureStepTaskIdentifier steps:@[step]];
 }
 
 
