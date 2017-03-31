@@ -39,7 +39,12 @@ extension ORKBiologicalSexIdentifier {
         case ORKBiologicalSexIdentifier.male:
             return HKBiologicalSex.male
         case ORKBiologicalSexIdentifier.other:
-            return HKBiologicalSex.other
+            if #available(iOS 8.2, *) {
+                return HKBiologicalSex.other
+            } else {
+                // Fallback on earlier versions
+                return nil
+            }
         default:
             return nil
         }
