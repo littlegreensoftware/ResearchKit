@@ -91,6 +91,7 @@ enum TaskListRow: Int, CustomStringConvertible {
     case reactionTime
     case shortWalk
     case spatialSpanMemory
+    case stroop
     case timedWalk
     case timedWalkWithTurnAround
     case toneAudiometry
@@ -103,6 +104,7 @@ enum TaskListRow: Int, CustomStringConvertible {
     case shoulderRangeOfMotion
     case trailMaking
     case videoInstruction
+    case webView
     
     class TaskListRowSection {
         var title: String
@@ -160,6 +162,7 @@ enum TaskListRow: Int, CustomStringConvertible {
                     .reactionTime,
                     .shortWalk,
                     .spatialSpanMemory,
+                    .stroop,
                     .timedWalk,
                     .timedWalkWithTurnAround,
                     .toneAudiometry,
@@ -174,6 +177,7 @@ enum TaskListRow: Int, CustomStringConvertible {
             TaskListRowSection(title: "Miscellaneous", rows:
                 [
                     .videoInstruction,
+                    .webView
                 ]),
         ]}
     
@@ -277,6 +281,9 @@ enum TaskListRow: Int, CustomStringConvertible {
         case .spatialSpanMemory:
             return NSLocalizedString("Spatial Span Memory", comment: "")
             
+        case .stroop:
+            return NSLocalizedString("Stroop", comment: "")
+            
         case .timedWalk:
             return NSLocalizedString("Timed Walk", comment: "")
             
@@ -309,6 +316,9 @@ enum TaskListRow: Int, CustomStringConvertible {
             
         case .trailMaking:
             return NSLocalizedString("Trail Making Test", comment: "")
+            
+        case .webView:
+            return NSLocalizedString("Web View", comment: "")
         }
     }
     
@@ -360,7 +370,8 @@ enum TaskListRow: Int, CustomStringConvertible {
 
         // Task with an image choice question.
         case imageChoiceQuestionTask
-        case imageChoiceQuestionStep
+        case imageChoiceQuestionStep1
+        case imageChoiceQuestionStep2
         
         // Task with a location entry.
         case locationQuestionTask
@@ -459,6 +470,7 @@ enum TaskListRow: Int, CustomStringConvertible {
         case reactionTime
         case shortWalkTask
         case spatialSpanMemoryTask
+        case stroopTask
         case timedWalkTask
         case timedWalkWithTurnAroundTask
         case toneAudiometryTask
@@ -473,6 +485,10 @@ enum TaskListRow: Int, CustomStringConvertible {
         // Video instruction tasks.
         case videoInstructionTask
         case videoInstructionStep
+        
+        // Web view tasks.
+        case webViewTask
+        case webViewStep
     }
     
     // MARK: Properties
@@ -575,6 +591,9 @@ enum TaskListRow: Int, CustomStringConvertible {
         case .spatialSpanMemory:
             return spatialSpanMemoryTask
 
+        case .stroop:
+            return stroopTask
+            
         case .timedWalk:
             return timedWalkTask
 
@@ -607,6 +626,9 @@ enum TaskListRow: Int, CustomStringConvertible {
         
         case .videoInstruction:
             return videoInstruction
+            
+        case .webView:
+            return webView
         }
     }
 
@@ -765,13 +787,19 @@ enum TaskListRow: Int, CustomStringConvertible {
             ORKImageChoice(normalImage: squareShapeImage, selectedImage: nil, text: squareShapeText, value: squareShapeText as NSCoding & NSCopying & NSObjectProtocol)
         ]
         
-        let answerFormat = ORKAnswerFormat.choiceAnswerFormat(with: imageChoces)
+        let answerFormat1 = ORKAnswerFormat.choiceAnswerFormat(with: imageChoces)
         
-        let questionStep = ORKQuestionStep(identifier: String(describing:Identifier.imageChoiceQuestionStep), title: exampleQuestionText, answer: answerFormat)
+        let questionStep1 = ORKQuestionStep(identifier: String(describing:Identifier.imageChoiceQuestionStep1), title: exampleQuestionText, answer: answerFormat1)
+
+        questionStep1.text = exampleDetailText
+
+        let answerFormat2 = ORKAnswerFormat.choiceAnswerFormat(with: imageChoces, style: .singleChoice, vertical: true)
         
-        questionStep.text = exampleDetailText
+        let questionStep2 = ORKQuestionStep(identifier: String(describing:Identifier.imageChoiceQuestionStep2), title: exampleQuestionText, answer: answerFormat2)
+
+        questionStep2.text = exampleDetailText
         
-        return ORKOrderedTask(identifier: String(describing:Identifier.imageChoiceQuestionTask), steps: [questionStep])
+        return ORKOrderedTask(identifier: String(describing:Identifier.imageChoiceQuestionTask), steps: [questionStep1, questionStep2])
     }
     
     /// This task presents just a single location question.
@@ -1316,6 +1344,11 @@ enum TaskListRow: Int, CustomStringConvertible {
     private var spatialSpanMemoryTask: ORKTask {
         return ORKOrderedTask.spatialSpanMemoryTask(withIdentifier: String(describing:Identifier.spatialSpanMemoryTask), intendedUseDescription: exampleDescription, initialSpan: 3, minimumSpan: 2, maximumSpan: 15, playSpeed: 1.0, maximumTests: 5, maximumConsecutiveFailures: 3, customTargetImage: nil, customTargetPluralName: nil, requireReversal: false, options: [])
     }
+    
+    /// This task presents the Stroop pre-defined active task.
+    private var stroopTask: ORKTask {
+        return ORKOrderedTask.stroopTask(withIdentifier: String(describing:Identifier.stroopTask), intendedUseDescription: exampleDescription, numberOfAttempts: 10, options: [])
+    }
 
     /// This task presents the Timed Walk pre-defined active task.
     private var timedWalkTask: ORKTask {
@@ -1380,6 +1413,12 @@ enum TaskListRow: Int, CustomStringConvertible {
         videoInstructionStep.videoURL = URL(string: "https://www.apple.com/media/us/researchkit/2016/a63aa7d4_e6fd_483f_a59d_d962016c8093/films/carekit/researchkit-carekit-cc-us-20160321_r848-9dwc.mov")
         videoInstructionStep.thumbnailTime = 2 // Customizable thumbnail timestamp
         return ORKOrderedTask(identifier: String(describing: Identifier.videoInstructionTask), steps: [videoInstructionStep])
+    }
+    
+    /// This task presents a web view step
+    private var webView: ORKTask {
+        let webViewStep = ORKWebViewStep.init(identifier: String(describing: Identifier.webViewStep), html: exampleHtml)
+        return ORKOrderedTask(identifier: String(describing: Identifier.webViewTask), steps: [webViewStep])
     }
     
     // MARK: Consent Document Creation Convenience
@@ -1544,5 +1583,70 @@ enum TaskListRow: Int, CustomStringConvertible {
     
     private var loremIpsumLongText: String {
         return "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam adhuc, meo fortasse vitio, quid ego quaeram non perspicis. Plane idem, inquit, et maxima quidem, qua fieri nulla maior potest. Quonam, inquit, modo? An potest, inquit ille, quicquam esse suavius quam nihil dolere? Cave putes quicquam esse verius. Quonam, inquit, modo?"
+    }
+    
+    private var exampleHtml: String {
+        return """
+        <!DOCTYPE html>
+
+        <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+        <head>
+            <meta name="viewport" content="width=400, user-scalable=no">
+            <meta charset="utf-8" />
+            <style type="text/css">
+            body
+            {
+                background: #FFF;
+                font-family: Helvetica, sans-serif;
+                text-align: center;
+            }
+
+            .container
+            {
+                width: 100%;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+
+            .answer-box
+            {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px;
+                border: solid 1px #ddd;
+                border-radius: 2px;
+                -webkit-appearance: none;
+            }
+
+            .continue-button
+            {
+                width: 140px;
+                text-align: center;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                font-size: 16px;
+                color: #2e6e9e;
+                border-radius: 2px;
+                border: solid 1px #2e6e9e;
+                background: #FFF;
+                cursor: pointer;
+                margin-top: 40px;
+            }
+            </style>
+            <script type="text/javascript">
+            function completeStep() {
+                var answer = document.getElementById("answer").value;
+                window.webkit.messageHandlers.ResearchKit.postMessage(answer);
+            }
+            </script>
+        </head>
+        <body>
+            <div class="container">
+                <input type="text" id="answer" class="answer-box" placeholder="Answer" />
+                <button onclick="completeStep();" class="continue-button">Continue</button>
+            </div>
+        </body>
+        </html>
+        """
     }
 }
